@@ -1,0 +1,1 @@
+cl65 --target none --cpu 65C02 fat.asm -o fat.bin --start-addr 0x1000
