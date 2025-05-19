@@ -11,7 +11,7 @@ BUSY = %10000000
 ERROR = %00000001
 DATA_AVILABLE = %00001000
 
-LBA48_LOC = $500
+LBA48_LOC = $579
 
 DATA_L = $C010
 DATA_H = $C018
@@ -33,6 +33,18 @@ IDENTIFY = $EC
 
 init_hdd:
     jsr check_available_drives
+
+    lda #10
+    jsr $FF03
+
+    lda MASTER_DRIVE
+    jsr $FF06
+
+    lda #10
+    jsr $FF03
+
+    lda SLAVE_DRIVE
+    jsr $FF06
     rts
 
 ;--------------------------------------------------------
