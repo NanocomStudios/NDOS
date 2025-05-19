@@ -11,6 +11,8 @@ BUSY = %10000000
 ERROR = %00000001
 DATA_AVILABLE = %00001000
 
+LBA48_LOC = $500
+
 DATA_L = $C010
 DATA_H = $C018
 ERROR_REG = $C011
@@ -31,6 +33,7 @@ IDENTIFY = $EC
 
 init_hdd:
     jsr check_available_drives
+    rts
 
 ;--------------------------------------------------------
 ;Set drive availablity status
@@ -56,7 +59,16 @@ check_available_drives:
 
     jsr load_sector
 
+    lda LBA48_LOC
+    and #%00000010
+    cmp #%00000010
+    bne slave_lba_28
 
+    lda SLAVE_DRIVE
+    ora #LBA48_AVAILABLE
+    sta SLAVE_DRIVE
+
+slave_lba_28:
 
     jmp check_master_drive
 
@@ -67,16 +79,32 @@ no_slave_drive:
 check_master_drive:
     lda #1
     sta MASTER_SLAVE
-
+    
     jsr set_drive
     sta SDH
-
+    
     lda CMD_STS
     cmp #0
     beq no_master_drive
 
-    lda DRIVE_AVAILABLE
+    lda #DRIVE_AVAILABLE
     sta MASTER_DRIVE
+
+    lda #IDENTIFY
+    sta CMD_STS
+
+    jsr load_sector
+
+    lda LBA48_LOC
+    and #%00000010
+    cmp #%00000010
+    bne master_lba_28
+
+    lda MASTER_DRIVE
+    ora #LBA48_AVAILABLE
+    sta MASTER_DRIVE
+
+master_lba_28:
 
     pla
     rts
