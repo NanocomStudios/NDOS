@@ -1,1 +1,1 @@
-cl65 --target none --cpu 65C02 ndos.asm -o ndos.bin --start-addr 0x1000
+cl65 --target none --cpu 65C02 ndos.asm -o ndos.bin --start-addr 0x1000 -Ln links.txt

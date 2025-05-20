@@ -45,6 +45,10 @@ init_hdd:
 
     lda SLAVE_DRIVE
     jsr $FF06
+
+    lda #10
+    jsr $FF03
+
     rts
 
 ;--------------------------------------------------------
@@ -59,15 +63,19 @@ check_available_drives:
     jsr set_drive
     sta SDH
     
+    jsr hdd_wait
+
+    lda #IDENTIFY
+    sta CMD_STS
+
+    jsr hdd_wait
+
     lda CMD_STS
     cmp #0
     beq no_slave_drive
 
     lda #DRIVE_AVAILABLE
     sta SLAVE_DRIVE
-
-    lda #IDENTIFY
-    sta CMD_STS
 
     jsr load_sector
 
@@ -95,15 +103,19 @@ check_master_drive:
     jsr set_drive
     sta SDH
     
+    jsr hdd_wait
+
+    lda #IDENTIFY
+    sta CMD_STS
+
+    jsr hdd_wait
+
     lda CMD_STS
     cmp #0
     beq no_master_drive
 
     lda #DRIVE_AVAILABLE
     sta MASTER_DRIVE
-
-    lda #IDENTIFY
-    sta CMD_STS
 
     jsr load_sector
 
@@ -168,11 +180,24 @@ set_drive_end:
 
 set_addr:
     pha
-    lda LBA_48
-    cmp #0
-    beq set_addr_28
 
-    ;drop down to set_addr_48
+    lda MASTER_SLAVE
+    cmp #0
+    beq set_slave_addr
+
+    lda MASTER_DRIVE
+    and #LBA48_AVAILABLE
+    cmp #LBA48_AVAILABLE
+    beq set_addr_48
+    jmp set_addr_28
+
+set_slave_addr:
+
+    lda SLAVE_DRIVE
+    and #LBA48_AVAILABLE
+    cmp #LBA48_AVAILABLE
+    beq set_addr_48
+    jmp set_addr_28
 
 ;--------------------------------------------------------
 ;Set the LBA Address (48 bit)
@@ -188,12 +213,12 @@ set_addr_48:
     lda ADDR4
     sta DATA_H
     lda ADDR1
-    sta LBA0
+    sta LBA1
 
     lda ADDR5
     sta DATA_H
     lda ADDR2
-    sta LBA0
+    sta LBA2
 
     lda #0
     sta DATA_H
@@ -211,10 +236,10 @@ set_addr_28:
     sta LBA0
 
     lda ADDR1
-    sta LBA0
+    sta LBA1
 
     lda ADDR2
-    sta LBA0
+    sta LBA2
 
     lda ADDR3
     and #%00001111
@@ -252,7 +277,7 @@ read_sector:
     lda #1
     sta SEC_CNT
 
-    lda READ_DATA
+    lda #READ_DATA
     sta CMD_STS
 
     pla
@@ -310,13 +335,15 @@ error_handler:
     lda #'E'
     jsr $FF03
 
+    pla
+    rts
+
 LBA_MODE: .byte 1
 MASTER_SLAVE: .byte 0
 
 MASTER_DRIVE: .byte 0
 SLAVE_DRIVE: .byte 0
 
-LBA_48: .byte 0
 TMP: .byte 0
 
 ADDR0: .byte 0
