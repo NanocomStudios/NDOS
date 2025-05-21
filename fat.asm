@@ -48,7 +48,7 @@ read_fat_drive:
     sta ADDR5
 
     jsr set_addr
-
+  
     jsr read_sector
 
     lda $6FE
@@ -114,9 +114,8 @@ mount_partition:
     
     lda MASTER_SLAVE
     
-    rol
-    rol
-    rol
+    asl
+    asl
 
     ora TMP
     ora #$80
@@ -129,6 +128,68 @@ mount_partition:
 
     rts
 
+
+load_root:
+
+    ldy CURRENT_PARTITION
+    lda drive_info, y
+
+    and #%00000100
+    lsr
+    lsr
+    pha
+    jsr print_hex
+    pla
+    sta MASTER_SLAVE
+
+    lda #1
+    sta LBA_MODE
+
+    jsr set_drive
+    sta SDH
+
+    lda #0
+    sta ADDR0
+    sta ADDR1
+    sta ADDR2
+    sta ADDR3
+    sta ADDR4
+    sta ADDR5
+
+    jsr set_addr
+  
+    jsr read_sector
+
+    ldx CURRENT_PARTITION
+    lda drive_info, x
+
+    and #%00000011
+    asl
+    asl
+    asl
+    asl
+
+    tax
+    lda $6C6, x
+    sta ADDR0
+    lda $6C7, x
+    sta ADDR1
+    lda $6C8, x
+    sta ADDR2
+    lda $6C9, x
+    sta ADDR3
+
+    lda #0
+    sta ADDR4
+    sta ADDR5
+
+    jsr set_addr
+    
+    jsr read_sector
+
+    rts
+drive_info:
+    .export drive_info
 C_DRIVE: .byte 0
 D_DRIVE: .byte 0
 E_DRIVE: .byte 0
@@ -139,4 +200,11 @@ I_DRIVE: .byte 0
 J_DRIVE: .byte 0
 
 DRIVE_CNT: .byte 0
+CURRENT_PARTITION: .byte 0
+
+SEC_PER_CLUS : .byte 0
+RSVD_SEC_CNT: .byte 0, 0
+NUM_OF_FAT: .byte 0
+SEC_PER_FAT: .byte 0, 0, 0, 0
+ROOT_CLUS:  .byte 0, 0, 0, 0
 ;AV XX XX XX XX MS PT PT

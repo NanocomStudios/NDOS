@@ -279,7 +279,7 @@ read_sector:
 
     lda #READ_DATA
     sta CMD_STS
-
+    lda CMD_STS
     pla
 
 load_sector:
@@ -327,6 +327,18 @@ read_sector_loop:
     jmp read_sector_loop
 
 load_data_end:
+
+    lda #10
+    jsr print_char
+
+    lda AH
+    jsr print_hex
+
+    lda AL
+    jsr print_hex
+
+    lda #10
+    jsr print_char
 
     pla
     rts
