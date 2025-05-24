@@ -279,9 +279,87 @@ calculate_data_area_begin:
 
     jsr add
 
-    jsr move_res_to_acc
+    jsr move_res_to_num1
 
+    lda SEC_PER_FAT
+    sta NUM2_0
 
+    lda SEC_PER_FAT + 1
+    sta NUM2_1
+
+    lda SEC_PER_FAT + 2
+    sta NUM2_2
+
+    lda SEC_PER_FAT + 3
+    sta NUM2_3
+
+    ldx #4
+    jsr add
+
+    ldy #0
+
+add_fat_loop:
+
+    iny
+    cpy NUM_OF_FAT
+    beq add_fat_loop_end
+
+    jsr move_res_to_num1
+    jsr add
+
+    jmp add_fat_loop
+
+add_fat_loop_end:
+
+    lda RES0
+    sta DATA_AREA_BEGIN
+
+    lda RES1
+    sta DATA_AREA_BEGIN + 1
+
+    lda RES2
+    sta DATA_AREA_BEGIN + 2
+
+    lda RES3
+    sta DATA_AREA_BEGIN + 3
+
+    lda ROOT_CLUS
+    sta CURRENT_CLUSTER
+
+    lda ROOT_CLUS + 1
+    sta CURRENT_CLUSTER + 1
+
+    lda ROOT_CLUS + 2
+    sta CURRENT_CLUSTER + 2
+
+    lda ROOT_CLUS + 3
+    sta CURRENT_CLUSTER + 3
+
+    jsr calculate_sec_from_clus
+
+    jsr move_res_to_num2
+
+    jsr add
+
+    lda RES0
+    sta ADDR0
+
+    lda RES1
+    sta ADDR1
+
+    lda RES2
+    sta ADDR2
+
+    lda RES3
+    sta ADDR3
+
+    lda #0
+    sta ADDR4
+    sta ADDR5
+
+    jsr set_addr
+
+    jsr read_sector
 
     rts
 

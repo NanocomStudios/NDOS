@@ -1,5 +1,5 @@
-al 001435 .__BSS_LOAD__
-al 001435 .__BSS_RUN__
+al 00152C .__BSS_LOAD__
+al 00152C .__BSS_RUN__
 al 000000 .__BSS_SIZE__
 al 000800 .__STACKSIZE__
 al 008000 .__STACKSTART__
@@ -8,4 +8,4 @@ al 000000 .__ZP_FILEOFFS__
 al 000080 .__ZP_LAST__
 al 00001F .__ZP_SIZE__
 al 000080 .__ZP_START__
-al 0013CC .drive_info
+al 001450 .drive_info
