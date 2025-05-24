@@ -1,3 +1,9 @@
+SEC_PER_CLUS_OFFSET = $50D  ;u8
+RSVD_SEC_CNT_OFFSET = $50E  ;u16
+NUM_OF_FAT_OFFSET = $510    ;u8
+SEC_PER_FAT_OFFSET = $524   ;u32
+ROOT_CLUS_OFFSET = $52C     ;u32
+
 
 init_partitions:
 
@@ -187,7 +193,98 @@ load_root:
     
     jsr read_sector
 
+    lda SEC_PER_CLUS_OFFSET
+    jsr calculate_sec_per_clus
+
+    lda RSVD_SEC_CNT_OFFSET
+    sta RSVD_SEC_CNT
+
+    lda RSVD_SEC_CNT_OFFSET + 1
+    sta RSVD_SEC_CNT + 1
+
+    lda NUM_OF_FAT_OFFSET
+    sta NUM_OF_FAT
+
+    lda SEC_PER_FAT_OFFSET
+    sta SEC_PER_FAT
+
+    lda SEC_PER_FAT_OFFSET + 1
+    sta SEC_PER_FAT + 1
+
+    lda SEC_PER_FAT_OFFSET + 2
+    sta SEC_PER_FAT + 2
+
+    lda SEC_PER_FAT_OFFSET + 3
+    sta SEC_PER_FAT + 3
+
+    lda ROOT_CLUS_OFFSET
+    sta ROOT_CLUS
+
+    lda ROOT_CLUS_OFFSET + 1
+    sta ROOT_CLUS + 1
+
+    lda ROOT_CLUS_OFFSET + 2
+    sta ROOT_CLUS + 2
+
+    lda ROOT_CLUS_OFFSET + 3
+    sta ROOT_CLUS + 3
+
+    jsr calculate_data_area_begin
+
     rts
+
+calculate_sec_per_clus:
+    phx
+    ldx #0
+
+calculate_sec_per_clus_loop:
+
+    lsr
+    cmp #1
+    beq calculate_sec_per_clus_end
+
+    inx
+    jmp calculate_sec_per_clus_loop
+
+calculate_sec_per_clus_end:
+    stx SEC_PER_CLUS
+    plx
+    rts
+
+calculate_data_area_begin:
+
+    ldx #4
+
+    lda ADDR0
+    sta NUM1_0
+
+    lda ADDR1
+    sta NUM1_1
+
+    lda ADDR2
+    sta NUM1_2
+
+    lda ADDR3
+    sta NUM1_3
+
+    lda RSVD_SEC_CNT
+    sta NUM2_0
+
+    lda RSVD_SEC_CNT + 1
+    sta NUM2_1
+
+    lda #0
+    sta NUM2_2
+    sta NUM2_3
+
+    jsr add
+
+    jsr move_res_to_acc
+
+
+
+    rts
+
 drive_info:
     .export drive_info
 C_DRIVE: .byte 0
@@ -202,9 +299,12 @@ J_DRIVE: .byte 0
 DRIVE_CNT: .byte 0
 CURRENT_PARTITION: .byte 0
 
-SEC_PER_CLUS : .byte 0
+SEC_PER_CLUS: .byte 0
 RSVD_SEC_CNT: .byte 0, 0
 NUM_OF_FAT: .byte 0
 SEC_PER_FAT: .byte 0, 0, 0, 0
 ROOT_CLUS:  .byte 0, 0, 0, 0
+CURRENT_CLUSTER: .byte 0, 0, 0, 0
+CURRENT_SECTOR_OFFSET: .byte 0
+DATA_AREA_BEGIN: .byte 0, 0, 0, 0
 ;AV XX XX XX XX MS PT PT
